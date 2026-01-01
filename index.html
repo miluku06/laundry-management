@@ -205,9 +205,8 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Google Apps Script 需要使用 no-cors 模式
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify({
                         action: action,
@@ -216,7 +215,6 @@
                     })
                 });
                 
-                // no-cors 模式無法讀取回應，所以假設成功
                 return true;
             } catch (error) {
                 console.error('儲存失敗:', error);
@@ -288,14 +286,14 @@
                 } else {
                     records.push(record);
                 }
+                
+                alert('儲存成功！資料已上傳到 Google Sheets');
                 resetForm();
                 
-                // 等待 2 秒後重新載入資料（給 Google Sheets 時間更新）
+                // 等待 1 秒後重新載入資料
                 setTimeout(async () => {
                     await loadRecords();
-                }, 2000);
-                
-                alert('儲存成功！');
+                }, 1000);
             }
             
             saveBtn.disabled = false;
@@ -335,14 +333,13 @@
             
             if (success) {
                 records = records.filter(r => r.id !== id);
-                renderTable();
-                
-                // 等待 2 秒後重新載入資料
-                setTimeout(async () => {
-                    await loadRecords();
-                }, 2000);
                 
                 alert('刪除成功！');
+                
+                // 等待 1 秒後重新載入資料
+                setTimeout(async () => {
+                    await loadRecords();
+                }, 1000);
             }
         }
 
