@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客衣收送管理系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none; }
+        }
+        .loading{
+            border:3px solid #f3f3f3;
+            border-top:3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display:inline-block;
+        }
+        @keyframes spin {
+            0% {transform:rotate(0deg);}
+            100% {transform:rotate(360deg);}
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen p-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- 標題區 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">寒居酒店客衣收送管理系統</h1>
+            <div class="flex gap-4 mb-6">
+                <div class="flex-1 relative">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="搜尋房號或對點人..."
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <svg class="absolute left-3 top-3 text-gray-400" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <button
+                    onclick="showForm()"
+                    class="no-print flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    新增記錄
+                </button>
+                <button
+                    onclick="window.print()"
+                    class="no-print flex items-center gap-2 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    列印
+                </button>
+            </div>
+        </div>
+
+        <!-- 表單區 -->
+        <div id="formSection" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden no-print">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800" id="formTitle">新增記錄</h2>
+                <button onclick="resetForm()" class="text-gray-500 hover:text-gray-700">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">收取日期 *</label>
+                    <input type="date" id="pickupDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">房號 *</label>
+                    <input type="text" id="roomNumber" placeholder="例：1001" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">收取時間</label>
+                    <input type="time" id="pickupTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">收取對點人</label>
+                    <input type="text" id="pickupStaff" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">送回日期</label>
+                    <input type="date" id="returnDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">送回時間</label>
+                    <input type="time" id="returnTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">掛（件數）</label>
+                    <input type="number" id="hangCount" placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">包（件數）</label>
+                    <input type="number" id="packageCount" placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">送回對點人</label>
+                    <input type="text" id="returnStaff" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">回房時間</label>
+                    <input type="time" id="returnToRoomTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">折扣</label>
+                    <input type="text" id="discount" placeholder="例：8折" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">備註</label>
+                    <textarea id="notes" rows="3" placeholder="其他說明事項..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="saveRecord()" class="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    儲存
+                </button>
+                <button onclick="resetForm()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+            </div>
+        </div>
+
+        <!-- 表格區 -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-100 border-b">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">收取日期</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">房號</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">收取時間</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">收取對點人</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">送回日期</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">掛/包</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">送回對點人</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">回房時間</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 no-print">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">暫無記錄，請新增第一筆資料</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="recordCount" class="mt-4 text-center text-sm text-gray-600"></div>
+    </div>
+</div>
+
+<script>
+    let records = [];
+    let editingId = null;
+
+    // 載入資料
+    function loadRecords() {
+        const saved = localStorage.getItem('laundryRecords');
+        if (saved) {
+            records = JSON.parse(saved);
+            records.sort((a, b) => new Date(b.pickupDate) - new Date(a.pickupDate));
+        }
+        renderTable();
+    }
+
+    // 儲存資料
+    function saveToStorage() {
+        localStorage.setItem('laundryRecords', JSON.stringify(records));
+    }
+
+    // 顯示表單
+    function showForm() {
+        document.getElementById('formSection').classList.remove('hidden');
+        document.getElementById('formTitle').textContent = '新增記錄';
+    }
+
+   // 重置表單
+        function resetForm() {
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('formTitle').textContent = '新增記錄';
+            editingId = null;
+            
+            const fields = ['pickupDate', 'roomNumber', 'pickupTime', 'pickupStaff', 'returnDate', 
+                          'returnTime', 'hangCount', 'packageCount', 'returnStaff', 
+                          'returnToRoomTime', 'discount', 'notes'];
+            fields.forEach(field => {
+                document.getElementById(field).value = '';
+            });
+        }
+
+        // 儲存記錄
+        function saveRecord() {
+            const pickupDate = document.getElementById('pickupDate').value;
+            const roomNumber = document.getElementById('roomNumber').value;
+
+            if (!pickupDate || !roomNumber) {
+                alert('請填寫收取日期和房號');
+                return;
+            }
+
+            const record = {
+                id: editingId || Date.now().toString(),
+                pickupDate,
+                roomNumber,
+                pickupTime: document.getElementById('pickupTime').value,
+                pickupStaff: document.getElementById('pickupStaff').value,
+                returnDate: document.getElementById('returnDate').value,
+                returnTime: document.getElementById('returnTime').value,
+                hangCount: document.getElementById('hangCount').value,
+                packageCount: document.getElementById('packageCount').value,
+                returnStaff: document.getElementById('returnStaff').value,
+                returnToRoomTime: document.getElementById('returnToRoomTime').value,
+                discount: document.getElementById('discount').value,
+                notes: document.getElementById('notes').value
+            };
+
+            if (editingId) {
+                const index = records.findIndex(r => r.id === editingId);
+                records[index] = record;
+            } else {
+                records.push(record);
+            }
+
+            saveToStorage();
+            resetForm();
+            loadRecords();
+        }
+
+        // 編輯記錄
+        function editRecord(id) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+
+            editingId = id;
+            document.getElementById('formTitle').textContent = '編輯記錄';
+            document.getElementById('formSection').classList.remove('hidden');
+
+            document.getElementById('pickupDate').value = record.pickupDate;
+            document.getElementById('roomNumber').value = record.roomNumber;
+            document.getElementById('pickupTime').value = record.pickupTime || '';
+            document.getElementById('pickupStaff').value = record.pickupStaff || '';
+            document.getElementById('returnDate').value = record.returnDate || '';
+            document.getElementById('returnTime').value = record.returnTime || '';
+            document.getElementById('hangCount').value = record.hangCount || '';
+            document.getElementById('packageCount').value = record.packageCount || '';
+            document.getElementById('returnStaff').value = record.returnStaff || '';
+            document.getElementById('returnToRoomTime').value = record.returnToRoomTime || '';
+            document.getElementById('discount').value = record.discount || '';
+            document.getElementById('notes').value = record.notes || '';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 刪除記錄
+        function deleteRecord(id) {
+            if (!confirm('確定要刪除此記錄嗎？')) return;
+            
+            records = records.filter(r => r.id !== id);
+            saveToStorage();
+            loadRecords();
+        }
+        // 渲染表格
+        function renderTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = records.filter(r => 
+                r.roomNumber.toLowerCase().includes(searchTerm) ||
+                (r.pickupStaff && r.pickupStaff.toLowerCase().includes(searchTerm)) ||
+                (r.returnStaff && r.returnStaff.toLowerCase().includes(searchTerm))
+            );
+
+            const tbody = document.getElementById('tableBody');
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-8 text-center text-gray-500">暫無記錄，請新增第一筆資料</td></tr>';
+                document.getElementById('recordCount').textContent = '';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(record => {
+                let itemsText = '';
+                if (record.hangCount) itemsText += `掛${record.hangCount}`;
+                if (record.hangCount && record.packageCount) itemsText += ' / ';
+                if (record.packageCount) itemsText += `包${record.packageCount}`;
+
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm">${record.pickupDate}</td>
+                        <td class="px-4 py-3 text-sm font-medium">${record.roomNumber}</td>
+                        <td class="px-4 py-3 text-sm">${record.pickupTime || ''}</td>
+                        <td class="px-4 py-3 text-sm">${record.pickupStaff || ''}</td>
+                        <td class="px-4 py-3 text-sm">${record.returnDate || ''}</td>
+                        <td class="px-4 py-3 text-sm">${itemsText}</td>
+                        <td class="px-4 py-3 text-sm">${record.returnStaff || ''}</td>
+                        <td class="px-4 py-3 text-sm">${record.returnToRoomTime || ''}</td>
+                        <td class="px-4 py-3 text-sm no-print">
+                            <div class="flex gap-2">
+                                <button onclick="editRecord('${record.id}')" class="text-blue-600 hover:text-blue-800">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                <button onclick="deleteRecord('${record.id}')" class="text-red-600 hover:text-red-800">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('recordCount').textContent = `共 ${filtered.length} 筆記錄`;
+        }
+
+        // 搜尋功能
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+
+        // 初始化
+        loadRecords();
+
+        // 設定今天的日期為預設值
+        document.getElementById('pickupDate').valueAsDate = new Date();
+    </script>
+</body>
+</html>
