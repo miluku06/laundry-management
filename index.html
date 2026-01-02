@@ -51,15 +51,6 @@
                         </svg>
                         新增記錄
                     </button>
-                    <button
-                        onclick="window.print()"
-                        class="no-print flex items-center gap-2 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        列印
-                    </button>
                 </div>
             </div>
 
@@ -117,7 +108,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">折扣</label>
-                        <input type="text" id="discount" placeholder="例：8折" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <input type="text" id="discount" placeholder="例：滿千折300、滿2千折600..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="md:col-span-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">備註</label>
@@ -329,7 +320,6 @@
                 // 立即渲染表格
                 renderTable();
                 
-                alert('儲存成功！資料已上傳到 Google Sheets');
                 resetForm();
                 
                 // 3秒後重新從 Google Sheets 載入資料以確保同步
@@ -352,16 +342,17 @@
             document.getElementById('formTitle').textContent = '編輯記錄';
             document.getElementById('formSection').classList.remove('hidden');
 
-            document.getElementById('pickupDate').value = record.pickupDate;
+            // 格式化日期和時間後填入表單
+            document.getElementById('pickupDate').value = formatDate(record.pickupDate);
             document.getElementById('roomNumber').value = record.roomNumber;
-            document.getElementById('pickupTime').value = record.pickupTime || '';
+            document.getElementById('pickupTime').value = formatTime(record.pickupTime);
             document.getElementById('pickupStaff').value = record.pickupStaff || '';
-            document.getElementById('returnDate').value = record.returnDate || '';
-            document.getElementById('returnTime').value = record.returnTime || '';
+            document.getElementById('returnDate').value = formatDate(record.returnDate);
+            document.getElementById('returnTime').value = formatTime(record.returnTime);
             document.getElementById('hangCount').value = record.hangCount || '';
             document.getElementById('packageCount').value = record.packageCount || '';
             document.getElementById('returnStaff').value = record.returnStaff || '';
-            document.getElementById('returnToRoomTime').value = record.returnToRoomTime || '';
+            document.getElementById('returnToRoomTime').value = formatTime(record.returnToRoomTime);
             document.getElementById('discount').value = record.discount || '';
             document.getElementById('notes').value = record.notes || '';
 
@@ -381,13 +372,54 @@
                 // 立即渲染表格
                 renderTable();
                 
-                alert('刪除成功！');
-                
                 // 3秒後重新從 Google Sheets 載入資料以確保同步
                 setTimeout(async () => {
                     console.log('重新載入資料以確保同步...');
                     await loadRecords();
                 }, 3000);
+            }
+        }
+
+        // 格式化日期為 YYYY-MM-DD
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            
+            // 如果已經是 YYYY-MM-DD 格式，直接返回
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                return dateStr;
+            }
+            
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // 格式化時間為 HH:MM
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            
+            // 如果已經是 HH:MM 格式，直接返回
+            if (/^\d{2}:\d{2}$/.test(timeStr)) {
+                return timeStr;
+            }
+            
+            try {
+                const date = new Date(timeStr);
+                if (isNaN(date.getTime())) return timeStr;
+                
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${hours}:${minutes}`;
+            } catch (e) {
+                return timeStr;
             }
         }
 
@@ -414,16 +446,23 @@
                 if (record.hangCount && record.packageCount) itemsText += ' / ';
                 if (record.packageCount) itemsText += `包${record.packageCount}`;
 
+                // 格式化日期和時間
+                const pickupDate = formatDate(record.pickupDate);
+                const pickupTime = formatTime(record.pickupTime);
+                const returnDate = formatDate(record.returnDate);
+                const returnTime = formatTime(record.returnTime);
+                const returnToRoomTime = formatTime(record.returnToRoomTime);
+
                 return `
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm">${record.pickupDate || ''}</td>
+                        <td class="px-4 py-3 text-sm">${pickupDate}</td>
                         <td class="px-4 py-3 text-sm font-medium">${record.roomNumber || ''}</td>
-                        <td class="px-4 py-3 text-sm">${record.pickupTime || ''}</td>
+                        <td class="px-4 py-3 text-sm">${pickupTime}</td>
                         <td class="px-4 py-3 text-sm">${record.pickupStaff || ''}</td>
-                        <td class="px-4 py-3 text-sm">${record.returnDate || ''}</td>
+                        <td class="px-4 py-3 text-sm">${returnDate}</td>
                         <td class="px-4 py-3 text-sm">${itemsText}</td>
                         <td class="px-4 py-3 text-sm">${record.returnStaff || ''}</td>
-                        <td class="px-4 py-3 text-sm">${record.returnToRoomTime || ''}</td>
+                        <td class="px-4 py-3 text-sm">${returnToRoomTime}</td>
                         <td class="px-4 py-3 text-sm no-print">
                             <div class="flex gap-2">
                                 <button onclick="editRecord('${record.id}')" class="text-blue-600 hover:text-blue-800" title="編輯">
